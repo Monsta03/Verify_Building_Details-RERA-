@@ -3,13 +3,6 @@ import pandas as pd
 
 st.set_page_config(page_title="XLSX vs XLSM Verifier", layout="wide")
 
-hide_menu_style = """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    .css-1lsmgbg.egzxvld1 {display: none;} /* GitHub icon hiding */
-    </style>
-"""
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
 st.title("📋 XLSX vs XLSM Data Verification Tool")
