@@ -1,12 +1,13 @@
 import streamlit as st
 import pandas as pd
 
-hide_menu_style = 
+hide_menu_style = """
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     .css-1lsmgbg.egzxvld1 {display: none;} /* Sometimes the GitHub icon is here */
     </style>
+"""
 
 st.markdown(hide_menu_style, unsafe_allow_html=True)
 
