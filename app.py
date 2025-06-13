@@ -3,8 +3,6 @@ import pandas as pd
 
 st.set_page_config(page_title="XLSX vs XLSM Verifier", layout="wide")
 
-st.markdown(hide_menu_style, unsafe_allow_html=True)
-
 st.title("📋 XLSX vs XLSM Data Verification Tool")
 
 # === Upload Files ===
