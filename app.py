@@ -189,7 +189,7 @@ st.markdown(
         color: #ffffff;
         text-align: center;
         padding: 0.8rem 0;
-        font-size: 1.85rem;
+        font-size: 1.45rem;
         z-index: 100;
         border-top: 1px solid #444;
     }
