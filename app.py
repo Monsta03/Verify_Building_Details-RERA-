@@ -176,12 +176,23 @@ if xlsm_file and xlsx_file:
         with st.expander("🔵 Unsold Value Mismatches"):
             st.dataframe(pd.DataFrame(unsold_mismatches))
 
-    # === Footer ===
+    # === Footer (Always Visible) ===
     st.markdown("---")
     st.markdown(
-        "<div style='text-align: center; padding: 20px 0; color: gray;'>"
-        "&copy; 2025 Aryan Parte. All rights reserved."
-        "</div>",
+        """
+        <style>
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.9rem;
+            color: gray;
+        }
+        </style>
+        <div class="footer">
+            &copy; 2025 Aryan Parte. All rights reserved.
+        </div>
+        """,
         unsafe_allow_html=True
     )
+
 
