@@ -181,18 +181,26 @@ st.markdown("---")
 st.markdown(
     """
     <style>
-    .footer {
+    .footer-fixed {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #262730; /* or #111 if you want darker */
+        color: #ffffff;
         text-align: center;
-        padding: 1rem;
-        font-size: 0.9rem;
-        color: gray;
+        padding: 0.8rem 0;
+        font-size: 0.85rem;
+        z-index: 100;
+        border-top: 1px solid #444;
     }
     </style>
-    <div class="footer">
+    <div class="footer-fixed">
         &copy; 2025 Aryan Parte. All rights reserved.
     </div>
     """,
     unsafe_allow_html=True
 )
+
 
 
