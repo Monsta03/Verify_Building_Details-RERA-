@@ -177,7 +177,6 @@ if xlsm_file and xlsx_file:
             st.dataframe(pd.DataFrame(unsold_mismatches))
 
 # === Footer (Always Visible) ===
-st.markdown("---")
 st.markdown(
     """
     <style>
@@ -186,8 +185,8 @@ st.markdown(
         bottom: 0;
         left: 0;
         width: 100%;
-        background-color: #262730; /* or #111 if you want darker */
-        color: #ffffff;
+        background-color: #ffffff; /* or #111 if you want darker */
+        color: #000000;
         text-align: center;
         padding: 0.8rem 0;
         font-size: 0.85rem;
