@@ -185,11 +185,11 @@ st.markdown(
         bottom: 0;
         left: 0;
         width: 100%;
-        background-color: #ffffff; /* or #111 if you want darker */
-        color: #000000;
+        background-color: #262730; /* or #111 if you want darker */
+        color: #ffffff;
         text-align: center;
         padding: 0.8rem 0;
-        font-size: 0.85rem;
+        font-size: 1.85rem;
         z-index: 100;
         border-top: 1px solid #444;
     }
