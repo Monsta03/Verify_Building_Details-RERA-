@@ -176,7 +176,7 @@ if xlsm_file and xlsx_file:
         with st.expander("🔵 Unsold Value Mismatches"):
             st.dataframe(pd.DataFrame(unsold_mismatches))
 
-    # === Footer (Always Visible) ===
+# === Footer (Always Visible) ===
     st.markdown("---")
     st.markdown(
         """
