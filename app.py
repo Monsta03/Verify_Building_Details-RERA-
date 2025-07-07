@@ -17,7 +17,7 @@ with st.sidebar:
     - 🟠 Status mismatches
     - 🔵 Area / Amount mismatches
 
-    **Made for Developers + Analysts**
+    **Made for Speed & Accuracy**
     """)
 
 # === Header ===
@@ -175,3 +175,13 @@ if xlsm_file and xlsx_file:
     if unsold_mismatches:
         with st.expander("🔵 Unsold Value Mismatches"):
             st.dataframe(pd.DataFrame(unsold_mismatches))
+
+    # === Footer ===
+    st.markdown("---")
+    st.markdown(
+        "<div style='text-align: center; padding: 20px 0; color: gray;'>"
+        "&copy; 2025 Aryan Parte. All rights reserved."
+        "</div>",
+        unsafe_allow_html=True
+    )
+
