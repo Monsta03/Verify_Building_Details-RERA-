@@ -21,9 +21,9 @@ A Streamlit web app to **verify and compare building unit data** from two Excel 
 
 ![image](https://github.com/user-attachments/assets/e03c6467-6995-48af-b105-7911776c1fea)
 
-| Upload Interface | Mismatch Table Output |
-|------------------|------------------------|
-| ![upload](screenshots/upload.png) | ![results](screenshots/results.png) |
+![image](https://github.com/user-attachments/assets/8af56ea7-d4c9-45a7-b06d-b802092d9ca3)
+
+![image](https://github.com/user-attachments/assets/e9c50158-295b-4f66-838d-858e8a79eb3c)
 
 ---
 
