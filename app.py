@@ -177,22 +177,22 @@ if xlsm_file and xlsx_file:
             st.dataframe(pd.DataFrame(unsold_mismatches))
 
 # === Footer (Always Visible) ===
-    st.markdown("---")
-    st.markdown(
-        """
-        <style>
-        .footer {
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.9rem;
-            color: gray;
-        }
-        </style>
-        <div class="footer">
-            &copy; 2025 Aryan Parte. All rights reserved.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+st.markdown("---")
+st.markdown(
+    """
+    <style>
+    .footer {
+        text-align: center;
+        padding: 1rem;
+        font-size: 0.9rem;
+        color: gray;
+    }
+    </style>
+    <div class="footer">
+        &copy; 2025 Aryan Parte. All rights reserved.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 
