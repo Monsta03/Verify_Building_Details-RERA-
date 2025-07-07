@@ -52,8 +52,8 @@ A Streamlit web app to **verify and compare building unit data** from two Excel 
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/yourusername/xlsx-xlsm-verifier.git
-cd xlsx-xlsm-verifier
+git clone https://github.com/aryanparte03/Verify_Building_Details-RERA-.git
+cd Verify_Building_Details-RERA-
 
 # 2. Create virtual environment (optional but recommended)
 python -m venv venv
