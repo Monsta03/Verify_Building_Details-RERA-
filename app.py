@@ -40,44 +40,51 @@ if xlsm_file and xlsx_file:
     xlsx = pd.ExcelFile(xlsx_file)
     table_c = xlsx.parse("Table C")
 
-    # === Extract Tables (Safe Parsing for Optional Tables) ===
-    try:
-        sold_start = next(i for i, row in table_c.iterrows() if row.astype(str).str.contains("Flat No", na=False).any())
-        sold_end = next(
-            (i for i, row in table_c.iterrows()
-             if row.astype(str).str.contains("TOTAL", na=False, case=False).any() and i > sold_start),
-            sold_start + 1
-        )
-        sold_table = table_c.iloc[sold_start + 1:sold_end, 0:5].copy()
-        sold_table.columns = [
-            'Sr.No ', 'Flat No ', 'Carpet Area In Sq.Mtrs ',
-            'Unit Consideration as per Agreement /Letter Of Allotment',
-            'Received Amount '
-        ]
-    except StopIteration:
-        sold_table = pd.DataFrame(columns=[
-            'Sr.No ', 'Flat No ', 'Carpet Area In Sq.Mtrs ',
-            'Unit Consideration as per Agreement /Letter Of Allotment',
-            'Received Amount '
-        ])
+    # === Find section boundaries based on header titles ===
+    sold_start_idx = None
+    unsold_start_idx = None
+    for i, row in table_c.iterrows():
+        row_text = ' '.join(row.astype(str).fillna("").tolist()).upper()
+        if "SOLD INVENTORY" in row_text and sold_start_idx is None:
+            sold_start_idx = i
+        elif "UNSOLD INVENTORY" in row_text and unsold_start_idx is None:
+            unsold_start_idx = i
 
-    try:
-        unsold_start = next(i for i, row in table_c.iterrows() if row.astype(str).str.contains("Flat No /Shop No", na=False).any()) + 2
-        unsold_end = next(
-            (i for i, row in table_c.iterrows()
-             if row.astype(str).str.contains("TOTAL", na=False, case=False).any() and i > unsold_start),
-            unsold_start
-        )
-        unsold_table = table_c.iloc[unsold_start:unsold_end, 0:4].copy()
-        unsold_table.columns = [
-            'Sr.No ', 'Flat No /Shop No', 'Carpet Area In Sq.Mtrs ',
-            'Unit Consideration as per Readyrecknor Rate'
-        ]
-    except StopIteration:
-        unsold_table = pd.DataFrame(columns=[
-            'Sr.No ', 'Flat No /Shop No', 'Carpet Area In Sq.Mtrs ',
-            'Unit Consideration as per Readyrecknor Rate'
-        ])
+    # === Extract Sold Table ===
+    sold_table = pd.DataFrame(columns=[
+        'Sr.No ', 'Flat No ', 'Carpet Area In Sq.Mtrs ',
+        'Unit Consideration as per Agreement /Letter Of Allotment',
+        'Received Amount '
+    ])
+    if sold_start_idx is not None:
+        sold_header_idx = sold_start_idx + 2  # skip title + blank
+        sold_data_start = sold_header_idx + 1
+        # If unsold comes after sold, limit rows
+        sold_data_end = unsold_start_idx if unsold_start_idx and unsold_start_idx > sold_data_start else len(table_c)
+        raw_sold_table = table_c.iloc[sold_data_start:sold_data_end, 0:5].dropna(how='all')
+        if not raw_sold_table.empty:
+            sold_table = raw_sold_table.copy()
+            sold_table.columns = [
+                'Sr.No ', 'Flat No ', 'Carpet Area In Sq.Mtrs ',
+                'Unit Consideration as per Agreement /Letter Of Allotment',
+                'Received Amount '
+            ]
+
+    # === Extract Unsold Table ===
+    unsold_table = pd.DataFrame(columns=[
+        'Sr.No ', 'Flat No /Shop No', 'Carpet Area In Sq.Mtrs ',
+        'Unit Consideration as per Readyrecknor Rate'
+    ])
+    if unsold_start_idx is not None:
+        unsold_header_idx = unsold_start_idx + 1
+        unsold_data_start = unsold_header_idx + 1
+        raw_unsold_table = table_c.iloc[unsold_data_start:, 0:4].dropna(how='all')
+        if not raw_unsold_table.empty:
+            unsold_table = raw_unsold_table.copy()
+            unsold_table.columns = [
+                'Sr.No ', 'Flat No /Shop No', 'Carpet Area In Sq.Mtrs ',
+                'Unit Consideration as per Readyrecknor Rate'
+            ]
 
     # === Filter XLSM ===
     sold_xlsm = xlsm_df[xlsm_df['Unit Sale Category * '].isin(['Sold', 'Booked'])].copy()
@@ -120,15 +127,19 @@ if xlsm_file and xlsx_file:
 
         def norm(df, col): return df[col].astype(str).str.strip().str.upper().str.replace("-", " ", regex=False)
 
-        sold_table[sold_key] = norm(sold_table, sold_key)
-        unsold_table[unsold_key] = norm(unsold_table, unsold_key)
-        sold_xlsm['Flat No '] = norm(sold_xlsm, 'Flat No ')
-        unsold_xlsm['Flat No /Shop No'] = norm(unsold_xlsm, 'Flat No /Shop No')
+        if not sold_table.empty:
+            sold_table[sold_key] = norm(sold_table, sold_key)
+        if not unsold_table.empty:
+            unsold_table[unsold_key] = norm(unsold_table, unsold_key)
+        if not sold_xlsm.empty:
+            sold_xlsm['Flat No '] = norm(sold_xlsm, 'Flat No ')
+        if not unsold_xlsm.empty:
+            unsold_xlsm['Flat No /Shop No'] = norm(unsold_xlsm, 'Flat No /Shop No')
 
-        sold_xlsx_flats = set(sold_table[sold_key])
-        unsold_xlsx_flats = set(unsold_table[unsold_key])
-        sold_xlsm_flats = set(sold_xlsm['Flat No '])
-        unsold_xlsm_flats = set(unsold_xlsm['Flat No /Shop No'])
+        sold_xlsx_flats = set(sold_table[sold_key]) if not sold_table.empty else set()
+        unsold_xlsx_flats = set(unsold_table[unsold_key]) if not unsold_table.empty else set()
+        sold_xlsm_flats = set(sold_xlsm['Flat No ']) if not sold_xlsm.empty else set()
+        unsold_xlsm_flats = set(unsold_xlsm['Flat No /Shop No']) if not unsold_xlsm.empty else set()
 
         for flat in sold_xlsx_flats:
             if flat not in sold_xlsm_flats and flat in unsold_xlsm_flats:
