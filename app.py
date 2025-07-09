@@ -40,23 +40,44 @@ if xlsm_file and xlsx_file:
     xlsx = pd.ExcelFile(xlsx_file)
     table_c = xlsx.parse("Table C")
 
-    # === Extract Tables (Same logic) ===
-    sold_start = next(i for i, row in table_c.iterrows() if row.astype(str).str.contains("Flat No", na=False).any())
-    sold_end = next(i for i, row in table_c.iterrows() if row.astype(str).str.contains("TOTAL", na=False, case=False).any() and i > sold_start)
-    sold_table = table_c.iloc[sold_start+1:sold_end, 0:5].copy()
-    sold_table.columns = [
-        'Sr.No ', 'Flat No ', 'Carpet Area In Sq.Mtrs ',
-        'Unit Consideration as per Agreement /Letter Of Allotment',
-        'Received Amount '
-    ]
+    # === Extract Tables (Safe Parsing for Optional Tables) ===
+    try:
+        sold_start = next(i for i, row in table_c.iterrows() if row.astype(str).str.contains("Flat No", na=False).any())
+        sold_end = next(
+            (i for i, row in table_c.iterrows()
+             if row.astype(str).str.contains("TOTAL", na=False, case=False).any() and i > sold_start),
+            sold_start + 1
+        )
+        sold_table = table_c.iloc[sold_start + 1:sold_end, 0:5].copy()
+        sold_table.columns = [
+            'Sr.No ', 'Flat No ', 'Carpet Area In Sq.Mtrs ',
+            'Unit Consideration as per Agreement /Letter Of Allotment',
+            'Received Amount '
+        ]
+    except StopIteration:
+        sold_table = pd.DataFrame(columns=[
+            'Sr.No ', 'Flat No ', 'Carpet Area In Sq.Mtrs ',
+            'Unit Consideration as per Agreement /Letter Of Allotment',
+            'Received Amount '
+        ])
 
-    unsold_start = next(i for i, row in table_c.iterrows() if row.astype(str).str.contains("Flat No /Shop No", na=False).any()) + 2
-    unsold_end = next(i for i, row in table_c.iterrows() if row.astype(str).str.contains("TOTAL", na=False, case=False).any() and i > unsold_start)
-    unsold_table = table_c.iloc[unsold_start:unsold_end, 0:4].copy()
-    unsold_table.columns = [
-        'Sr.No ', 'Flat No /Shop No', 'Carpet Area In Sq.Mtrs ',
-        'Unit Consideration as per Readyrecknor Rate'
-    ]
+    try:
+        unsold_start = next(i for i, row in table_c.iterrows() if row.astype(str).str.contains("Flat No /Shop No", na=False).any()) + 2
+        unsold_end = next(
+            (i for i, row in table_c.iterrows()
+             if row.astype(str).str.contains("TOTAL", na=False, case=False).any() and i > unsold_start),
+            unsold_start
+        )
+        unsold_table = table_c.iloc[unsold_start:unsold_end, 0:4].copy()
+        unsold_table.columns = [
+            'Sr.No ', 'Flat No /Shop No', 'Carpet Area In Sq.Mtrs ',
+            'Unit Consideration as per Readyrecknor Rate'
+        ]
+    except StopIteration:
+        unsold_table = pd.DataFrame(columns=[
+            'Sr.No ', 'Flat No /Shop No', 'Carpet Area In Sq.Mtrs ',
+            'Unit Consideration as per Readyrecknor Rate'
+        ])
 
     # === Filter XLSM ===
     sold_xlsm = xlsm_df[xlsm_df['Unit Sale Category * '].isin(['Sold', 'Booked'])].copy()
@@ -121,6 +142,9 @@ if xlsm_file and xlsx_file:
 
     def compare_values(std_df, source_df, table_name, key_col, fields):
         mismatches = []
+        if std_df.empty or source_df.empty:
+            return mismatches
+
         std_df[key_col] = std_df[key_col].astype(str).str.strip().str.upper().str.replace("-", " ", regex=False)
         source_df[key_col] = source_df[key_col].astype(str).str.strip().str.upper().str.replace("-", " ", regex=False)
 
@@ -148,7 +172,9 @@ if xlsm_file and xlsx_file:
         return mismatches
 
     # === Run Checks ===
-    status_mismatches = check_status_mismatches(sold_table, 'Flat No ', unsold_table, 'Flat No /Shop No', sold_xlsm, unsold_xlsm)
+    status_mismatches = check_status_mismatches(
+        sold_table, 'Flat No ', unsold_table, 'Flat No /Shop No', sold_xlsm, unsold_xlsm
+    )
     sold_mismatches = compare_values(sold_table, sold_xlsm, "SOLD", 'Flat No ', [
         'Carpet Area In Sq.Mtrs ', 'Unit Consideration as per Agreement /Letter Of Allotment', 'Received Amount '
     ])
@@ -185,7 +211,7 @@ st.markdown(
         bottom: 0;
         left: 0;
         width: 100%;
-        background-color: #262730; /* or #111 if you want darker */
+        background-color: #262730;
         color: #ffffff;
         text-align: center;
         padding: 0.8rem 0;
@@ -200,6 +226,3 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-
-
