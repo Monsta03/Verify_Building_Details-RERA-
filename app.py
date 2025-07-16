@@ -6,27 +6,30 @@ st.set_page_config(page_title="XLSX vs XLSM Verifier", layout="wide")
 st.markdown("<style>div.block-container{padding-top:2rem;}</style>", unsafe_allow_html=True)
 
 # === Sidebar ===
-st.markdown("Upload:")
-st.markdown("- 🟠 **XLSM**: From ERP (`Building_Unit_Details` sheet)")
-st.markdown("- 🔵 **XLSX**: From CA/Consultant (`Table C`)")
+with st.sidebar:
+    st.title("📊 XLSX vs XLSM Verifier")
+    st.markdown("""
+    Upload:
+    - 🟠 **XLSM**: From ERP (Building_Unit_Details sheet)
+    - 🔵 **XLSX**: From CA/Consultant (Table C)
 
-st.markdown("This tool compares sold/unsold unit data & values to catch:")
-st.markdown("- 🟠 Status mismatches")
-st.markdown("- 🔵 Area / Amount mismatches")
+    This tool compares sold/unsold unit data & values to catch:
+    - 🟠 Status mismatches
+    - 🔵 Area / Amount mismatches
 
-st.markdown("**Made for Speed & Accuracy**")
-
+    **Made for Speed & Accuracy**
+    """)
 
 # === Header ===
-st.title("\ud83d\udccb XLSX vs XLSM Data Verification Tool")
+st.title("📋 XLSX vs XLSM Data Verification Tool")
 st.markdown("---")
 
 # === Upload Section in Columns ===
 col1, col2 = st.columns(2)
 with col1:
-    xlsm_file = st.file_uploader("\ud83d\udce5 Upload XLSM File", type="xlsm", key="xlsm")
+    xlsm_file = st.file_uploader("📥 Upload XLSM File", type="xlsm", key="xlsm")
 with col2:
-    xlsx_file = st.file_uploader("\ud83d\udce5 Upload XLSX File", type="xlsx", key="xlsx")
+    xlsx_file = st.file_uploader("📥 Upload XLSX File", type="xlsx", key="xlsx")
 
 # === If files uploaded ===
 if xlsm_file and xlsx_file:
@@ -56,6 +59,7 @@ if xlsm_file and xlsx_file:
     if sold_start_idx is not None:
         sold_header_idx = sold_start_idx + 2  # skip title + blank
         sold_data_start = sold_header_idx + 1
+        # If unsold comes after sold, limit rows
         sold_data_end = unsold_start_idx if unsold_start_idx and unsold_start_idx > sold_data_start else len(table_c)
         raw_sold_table = table_c.iloc[sold_data_start:sold_data_end, 0:5].dropna(how='all')
         if not raw_sold_table.empty:
@@ -87,7 +91,7 @@ if xlsm_file and xlsx_file:
     unsold_xlsm = xlsm_df[xlsm_df['Unit Sale Category * '] == 'Unsold'].copy()
 
     if len(sold_xlsm) == 0 and len(unsold_xlsm) == 0:
-        st.error("\u274c **CRITICAL**: XLSM file has no Sold/Unsold entries!")
+        st.error("❌ **CRITICAL**: XLSM file has no Sold/Unsold entries!")
         st.stop()
 
     # === Rename columns to match ===
@@ -137,12 +141,6 @@ if xlsm_file and xlsx_file:
         sold_xlsm_flats = set(sold_xlsm['Flat No ']) if not sold_xlsm.empty else set()
         unsold_xlsm_flats = set(unsold_xlsm['Flat No /Shop No']) if not unsold_xlsm.empty else set()
 
-        ignore_vals = {"", "TOTAL", "NAN", "NaN", "NONE"}
-        sold_xlsx_flats -= ignore_vals
-        unsold_xlsx_flats -= ignore_vals
-        sold_xlsm_flats -= ignore_vals
-        unsold_xlsm_flats -= ignore_vals
-
         for flat in sold_xlsx_flats:
             if flat not in sold_xlsm_flats and flat in unsold_xlsm_flats:
                 mismatches.append({"Flat": flat, "Issue": "Sold in XLSX but Unsold in XLSM"})
@@ -155,17 +153,19 @@ if xlsm_file and xlsx_file:
 
     def compare_values(std_df, source_df, table_name, key_col, fields):
         mismatches = []
-
+    
         if std_df.empty or source_df.empty:
             return mismatches
-
+    
         std_df[key_col] = std_df[key_col].astype(str).str.strip().str.upper().str.replace("-", " ", regex=False)
         source_df[key_col] = source_df[key_col].astype(str).str.strip().str.upper().str.replace("-", " ", regex=False)
-
+    
+        # Remove TOTAL, NAN, BLANK rows from both
         ignore_vals = {"", "TOTAL", "NAN", "NaN", "NONE"}
         std_df = std_df[~std_df[key_col].isin(ignore_vals)]
         source_df = source_df[~source_df[key_col].isin(ignore_vals)]
-
+    
+        # Check if any flat in XLSX is not present in XLSM
         for _, row in std_df.iterrows():
             key_val = row[key_col]
             if key_val not in source_df[key_col].values:
@@ -175,18 +175,19 @@ if xlsm_file and xlsx_file:
                     "XLSX": "Present",
                     "XLSM": "Missing"
                 })
-
+    
+        # Compare matching entries
         for _, row in source_df.iterrows():
             key_val = row[key_col]
             match = std_df[std_df[key_col] == key_val]
             if match.empty:
                 continue
             match_row = match.iloc[0]
-
+    
             for field in fields:
                 val1 = row.get(field, 0)
                 val2 = match_row.get(field, 0)
-
+    
                 if "Carpet Area" in field:
                     if round(float(val1), 2) != round(float(val2), 2):
                         mismatches.append({
@@ -197,8 +198,9 @@ if xlsm_file and xlsx_file:
                         mismatches.append({
                             "Flat": key_val, "Issue": f"{field} mismatch", "XLSX": val1, "XLSM": val2
                         })
-
+    
         return mismatches
+
 
     # === Run Checks ===
     status_mismatches = check_status_mismatches(
@@ -212,23 +214,23 @@ if xlsm_file and xlsx_file:
     ])
 
     # === Output Summary ===
-    st.subheader("\u2705 Summary Report")
+    st.subheader("✅ Summary Report")
     if not status_mismatches and not sold_mismatches and not unsold_mismatches:
-        st.success("\ud83c\udf89 All entries matched perfectly!")
+        st.success("🎉 All entries matched perfectly!")
     else:
         st.info("Some mismatches found. Expand below to review.")
 
     # === Detailed Mismatch Display ===
     if status_mismatches:
-        with st.expander("\ud83d\udd34 Status Mismatches"):
+        with st.expander("🔴 Status Mismatches"):
             st.dataframe(pd.DataFrame(status_mismatches))
 
     if sold_mismatches:
-        with st.expander("\ud83d\udfe0 Sold Value Mismatches"):
+        with st.expander("🟠 Sold Value Mismatches"):
             st.dataframe(pd.DataFrame(sold_mismatches))
 
     if unsold_mismatches:
-        with st.expander("\ud83d\udd35 Unsold Value Mismatches"):
+        with st.expander("🔵 Unsold Value Mismatches"):
             st.dataframe(pd.DataFrame(unsold_mismatches))
 
 # === Footer (Always Visible) ===
