@@ -152,35 +152,47 @@ if xlsm_file and xlsx_file:
         return mismatches
 
     def compare_values(std_df, source_df, table_name, key_col, fields):
-        mismatches = []
-        if std_df.empty or source_df.empty:
-            return mismatches
-
-        std_df[key_col] = std_df[key_col].astype(str).str.strip().str.upper().str.replace("-", " ", regex=False)
-        source_df[key_col] = source_df[key_col].astype(str).str.strip().str.upper().str.replace("-", " ", regex=False)
-
-        for _, row in source_df.iterrows():
-            key_val = row[key_col]
-            match = std_df[std_df[key_col] == key_val]
-            if match.empty:
-                continue
-            match_row = match.iloc[0]
-
-            for field in fields:
-                val1 = row.get(field, 0)
-                val2 = match_row.get(field, 0)
-
-                if "Carpet Area" in field:
-                    if round(float(val1), 2) != round(float(val2), 2):
-                        mismatches.append({
-                            "Flat": key_val, "Issue": f"{field} mismatch", "XLSX": val1, "XLSM": val2
-                        })
-                else:
-                    if round(float(val1), 0) != round(float(val2), 0):
-                        mismatches.append({
-                            "Flat": key_val, "Issue": f"{field} mismatch", "XLSX": val1, "XLSM": val2
-                        })
+    mismatches = []
+    if std_df.empty or source_df.empty:
         return mismatches
+
+    std_df[key_col] = std_df[key_col].astype(str).str.strip().str.upper().str.replace("-", " ", regex=False)
+    source_df[key_col] = source_df[key_col].astype(str).str.strip().str.upper().str.replace("-", " ", regex=False)
+
+    # NEW: Check if any flat in XLSX is not present in XLSM
+    for _, row in std_df.iterrows():
+        key_val = row[key_col]
+        if key_val not in source_df[key_col].values:
+            mismatches.append({
+                "Flat": key_val,
+                "Issue": "Flat exists in XLSX but not in XLSM",
+                "XLSX": "Present",
+                "XLSM": "Missing"
+            })
+
+    # Existing: Compare matching entries
+    for _, row in source_df.iterrows():
+        key_val = row[key_col]
+        match = std_df[std_df[key_col] == key_val]
+        if match.empty:
+            continue
+        match_row = match.iloc[0]
+
+        for field in fields:
+            val1 = row.get(field, 0)
+            val2 = match_row.get(field, 0)
+
+            if "Carpet Area" in field:
+                if round(float(val1), 2) != round(float(val2), 2):
+                    mismatches.append({
+                        "Flat": key_val, "Issue": f"{field} mismatch", "XLSX": val1, "XLSM": val2
+                    })
+            else:
+                if round(float(val1), 0) != round(float(val2), 0):
+                    mismatches.append({
+                        "Flat": key_val, "Issue": f"{field} mismatch", "XLSX": val1, "XLSM": val2
+                    })
+    return mismatches
 
     # === Run Checks ===
     status_mismatches = check_status_mismatches(
