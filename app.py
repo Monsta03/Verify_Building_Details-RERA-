@@ -7,7 +7,7 @@ st.markdown("<style>div.block-container{padding-top:2rem;}</style>", unsafe_allo
 
 # === Sidebar ===
 with st.sidebar:
-    st.title("\ud83d\udcca XLSX vs XLSM Verifier")
+    st.title("📊 XLSX vs XLSM Verifier")
     st.markdown("""
     Upload:
     - \ud83d\udfe0 **XLSM**: From ERP (`Building_Unit_Details` sheet)
