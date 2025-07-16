@@ -124,9 +124,11 @@ if xlsm_file and xlsx_file:
     # === Helper functions ===
     def check_status_mismatches(sold_table, sold_key, unsold_table, unsold_key, sold_xlsm, unsold_xlsm):
         mismatches = []
-
-        def norm(df, col): return df[col].astype(str).str.strip().str.upper().str.replace("-", " ", regex=False)
-
+    
+        def norm(df, col):
+            return df[col].astype(str).str.strip().str.upper().str.replace("-", " ", regex=False)
+    
+        # Normalize values
         if not sold_table.empty:
             sold_table[sold_key] = norm(sold_table, sold_key)
         if not unsold_table.empty:
@@ -135,21 +137,31 @@ if xlsm_file and xlsx_file:
             sold_xlsm['Flat No '] = norm(sold_xlsm, 'Flat No ')
         if not unsold_xlsm.empty:
             unsold_xlsm['Flat No /Shop No'] = norm(unsold_xlsm, 'Flat No /Shop No')
-
+    
+        # Define sets
         sold_xlsx_flats = set(sold_table[sold_key]) if not sold_table.empty else set()
         unsold_xlsx_flats = set(unsold_table[unsold_key]) if not unsold_table.empty else set()
         sold_xlsm_flats = set(sold_xlsm['Flat No ']) if not sold_xlsm.empty else set()
         unsold_xlsm_flats = set(unsold_xlsm['Flat No /Shop No']) if not unsold_xlsm.empty else set()
-
+    
+        # Remove ignored values
+        ignore_vals = {"", "TOTAL", "NAN", "NONE"}
+        sold_xlsx_flats = {f for f in sold_xlsx_flats if f not in ignore_vals}
+        unsold_xlsx_flats = {f for f in unsold_xlsx_flats if f not in ignore_vals}
+        sold_xlsm_flats = {f for f in sold_xlsm_flats if f not in ignore_vals}
+        unsold_xlsm_flats = {f for f in unsold_xlsm_flats if f not in ignore_vals}
+    
+        # Compare sets
         for flat in sold_xlsx_flats:
             if flat not in sold_xlsm_flats and flat in unsold_xlsm_flats:
                 mismatches.append({"Flat": flat, "Issue": "Sold in XLSX but Unsold in XLSM"})
-
+    
         for flat in unsold_xlsx_flats:
             if flat not in unsold_xlsm_flats and flat in sold_xlsm_flats:
                 mismatches.append({"Flat": flat, "Issue": "Unsold in XLSX but Sold in XLSM"})
-
+    
         return mismatches
+
 
     def compare_values(std_df, source_df, table_name, key_col, fields):
         mismatches = []
