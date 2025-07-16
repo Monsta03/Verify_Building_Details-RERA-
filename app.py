@@ -6,19 +6,16 @@ st.set_page_config(page_title="XLSX vs XLSM Verifier", layout="wide")
 st.markdown("<style>div.block-container{padding-top:2rem;}</style>", unsafe_allow_html=True)
 
 # === Sidebar ===
-with st.sidebar:
-    st.title("📊 XLSX vs XLSM Verifier")
-    st.markdown("""
-    Upload:
-    - \ud83d\udfe0 **XLSM**: From ERP (`Building_Unit_Details` sheet)
-    - \ud83d\udd35 **XLSX**: From CA/Consultant (`Table C`)
+st.markdown("Upload:")
+st.markdown("- 🟠 **XLSM**: From ERP (`Building_Unit_Details` sheet)")
+st.markdown("- 🔵 **XLSX**: From CA/Consultant (`Table C`)")
 
-    This tool compares sold/unsold unit data & values to catch:
-    - \ud83d\udfe0 Status mismatches
-    - \ud83d\udd35 Area / Amount mismatches
+st.markdown("This tool compares sold/unsold unit data & values to catch:")
+st.markdown("- 🟠 Status mismatches")
+st.markdown("- 🔵 Area / Amount mismatches")
 
-    **Made for Speed & Accuracy**
-    """)
+st.markdown("**Made for Speed & Accuracy**")
+
 
 # === Header ===
 st.title("\ud83d\udccb XLSX vs XLSM Data Verification Tool")
